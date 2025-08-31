@@ -231,7 +231,7 @@ finally:
 
 # Extract session string from output
 output_text = ''.join(session_output)
-session_match = re.search(r'1B[A-Za-z0-9_-]*', output_text)
+session_match = re.search(r'1B[A-Za-z0-9_-]+', output_text)
 
 if session_match:
     session_string = session_match.group(0)
@@ -241,11 +241,12 @@ if session_match:
     with open('.env', 'r') as f:
         env_content = f.read()
     
-    # Replace the session string line
+    # Replace the session string line (handle multiline)
     env_content = re.sub(
-        r'TELEGRAM_SESSION_STRING=.*',
+        r'TELEGRAM_SESSION_STRING=.*?(?=\n#|\n$|\Z)',
         f'TELEGRAM_SESSION_STRING={session_string}',
-        env_content
+        env_content,
+        flags=re.DOTALL
     )
     
     with open('.env', 'w') as f:
