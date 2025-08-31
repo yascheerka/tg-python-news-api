@@ -72,37 +72,90 @@ mkdir -p ssl
 
 print_success "Project structure created"
 
-# Create .env file if it doesn't exist
+# Create .env file interactively
 if [ ! -f .env ]; then
-    print_status "Creating .env file template..."
+    print_status "Setting up .env file interactively..."
+    echo ""
+    print_status "You'll need Telegram API credentials from https://my.telegram.org/apps"
+    echo ""
+    
+    # Get API ID
+    while true; do
+        read -p "Enter your Telegram API ID: " api_id
+        if [[ $api_id =~ ^[0-9]+$ ]]; then
+            break
+        else
+            print_error "API ID must be a number"
+        fi
+    done
+    
+    # Get API Hash
+    while true; do
+        read -p "Enter your Telegram API Hash: " api_hash
+        if [[ ${#api_hash} -eq 32 ]]; then
+            break
+        else
+            print_error "API Hash must be 32 characters long"
+        fi
+    done
+    
+    # Get Phone Number
+    while true; do
+        read -p "Enter your phone number (with country code, e.g., +1234567890): " phone
+        if [[ $phone =~ ^\+[0-9]+$ ]]; then
+            break
+        else
+            print_error "Phone number must start with + and contain only digits"
+        fi
+    done
+    
+    # Get Secret Key
+    while true; do
+        read -p "Enter a secret key for API access (or press Enter for default '228'): " secret_key
+        if [[ -z $secret_key ]]; then
+            secret_key="228"
+        fi
+        if [[ ${#secret_key} -ge 3 ]]; then
+            break
+        else
+            print_error "Secret key must be at least 3 characters long"
+        fi
+    done
+    
+    # Get Port
+    while true; do
+        read -p "Enter API port (or press Enter for default 80): " api_port
+        if [[ -z $api_port ]]; then
+            api_port="80"
+        fi
+        if [[ $api_port =~ ^[0-9]+$ ]] && [[ $api_port -ge 1 ]] && [[ $api_port -le 65535 ]]; then
+            break
+        else
+            print_error "Port must be a number between 1 and 65535"
+        fi
+    done
+    
+    # Create .env file
     cat > .env << EOF
 # Telegram API Credentials
-# Get these from https://my.telegram.org/apps
-TELEGRAM_API_ID=your_api_id_here
-TELEGRAM_API_HASH=your_api_hash_here
+TELEGRAM_API_ID=$api_id
+TELEGRAM_API_HASH=$api_hash
 
 # Session string (will be generated)
 TELEGRAM_SESSION_STRING=
 
 # Phone number for session creation
-TELEGRAM_PHONE=your_phone_number_here
+TELEGRAM_PHONE=$phone
 
 # Secret key for API access
-SECRET_KEY=your_secret_key_here
+SECRET_KEY=$secret_key
 
-# API Port (default: 80)
-API_PORT=80
+# API Port
+API_PORT=$api_port
 EOF
-    print_warning "Please edit .env file with your Telegram credentials before continuing"
-    print_status "You can get API credentials from: https://my.telegram.org/apps"
+    
+    print_success ".env file created successfully!"
     echo ""
-    read -p "Press Enter when you've updated the .env file..."
-fi
-
-# Check if .env has proper values
-if grep -q "your_api_id_here" .env; then
-    print_error "Please update .env file with your actual Telegram credentials"
-    exit 1
 fi
 
 # Create virtual environment
@@ -120,17 +173,22 @@ print_success "Python dependencies installed"
 # Generate session string if not exists
 if ! grep -q "TELEGRAM_SESSION_STRING=1B" .env; then
     print_status "Generating Telegram session string..."
-    print_warning "You will need to enter your phone number and verification code"
+    print_warning "You will need to enter the verification code sent to your phone"
     
-    # Run session creation
-    python3 create_session_string.py
+    # Run session creation and capture output
+    session_output=$(python3 create_session_string.py 2>&1)
     
-    # Extract session string from output and update .env
-    print_status "Updating .env with session string..."
-    # This is a simplified approach - in practice, you'd need to parse the output
-    print_warning "Please manually copy the session string from above and update .env"
-    echo ""
-    read -p "Press Enter when you've updated the session string in .env..."
+    # Extract session string from output
+    session_string=$(echo "$session_output" | grep -o "1B[A-Za-z0-9_-]*" | head -1)
+    
+    if [[ -n $session_string ]]; then
+        # Update .env with session string
+        sed -i.bak "s/TELEGRAM_SESSION_STRING=/TELEGRAM_SESSION_STRING=$session_string/" .env
+        print_success "Session string generated and saved to .env!"
+    else
+        print_error "Failed to generate session string. Please run manually: python3 create_session_string.py"
+        exit 1
+    fi
 fi
 
 # Build and start Docker containers
