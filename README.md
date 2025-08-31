@@ -18,25 +18,34 @@ A FastAPI application that fetches news from Telegram channels with search capab
 - Docker and Docker Compose installed
 - Telegram API credentials (API_ID, API_HASH, SESSION_STRING)
 
-### Deployment
+### Quick Installation (One Command)
+
+**From anywhere, run this single command:**
+
+```bash
+curl -sSL https://raw.githubusercontent.com/yascheerka/tg-python-news-api/master/install.sh | bash
+```
+
+**Or manually:**
 
 1. **Clone and setup:**
    ```bash
-   git clone <repository>
-   cd <repository>
+   git clone https://github.com/yascheerka/tg-python-news-api.git
+   cd tg-python-news-api
    ```
 
-2. **Configure environment:**
+2. **Run the complete setup:**
    ```bash
-   # Copy your .env file with Telegram credentials
-   cp .env.example .env
-   # Edit .env with your actual credentials
+   ./setup.sh
    ```
 
-3. **Deploy:**
-   ```bash
-   ./deploy.sh
-   ```
+The setup script will:
+- ✅ Check all prerequisites (Docker, Python)
+- ✅ Create virtual environment and install dependencies
+- ✅ Guide you through Telegram API setup
+- ✅ Generate session string automatically
+- ✅ Build and start Docker containers
+- ✅ Test the API and provide usage examples
 
 4. **Access the API:**
    - API: http://tg.1488.fun
