@@ -106,6 +106,8 @@ Create a `.env` file with:
 TELEGRAM_API_ID=your_api_id
 TELEGRAM_API_HASH=your_api_hash
 TELEGRAM_SESSION_STRING=your_session_string
+SECRET_KEY=your_secret_key
+API_PORT=8080  # Optional: Change the port (default: 80)
 ```
 
 ## Architecture

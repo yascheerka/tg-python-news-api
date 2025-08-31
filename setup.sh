@@ -89,6 +89,9 @@ TELEGRAM_PHONE=your_phone_number_here
 
 # Secret key for API access
 SECRET_KEY=your_secret_key_here
+
+# API Port (default: 80)
+API_PORT=80
 EOF
     print_warning "Please edit .env file with your Telegram credentials before continuing"
     print_status "You can get API credentials from: https://my.telegram.org/apps"
@@ -149,9 +152,12 @@ else
     exit 1
 fi
 
+# Get the configured port
+API_PORT=$(grep API_PORT .env | cut -d'=' -f2 || echo "80")
+
 # Test the API
 print_status "Testing API endpoint..."
-if curl -s "http://localhost/fetch?channels=@WatcherGuru&days=1&limit=1&key=$(grep SECRET_KEY .env | cut -d'=' -f2)" > /dev/null; then
+if curl -s "http://localhost:${API_PORT}/fetch?channels=@WatcherGuru&days=1&limit=1&key=$(grep SECRET_KEY .env | cut -d'=' -f2)" > /dev/null; then
     print_success "API is responding successfully!"
 else
     print_warning "API test failed, but containers are running"
@@ -164,9 +170,9 @@ echo "=================="
 print_success "Your Telegram News API is now running!"
 echo ""
 echo "📋 Quick Reference:"
-echo "  • API Base URL: http://localhost"
-echo "  • API Docs: http://localhost/docs"
-echo "  • WebSocket: ws://localhost/ws"
+echo "  • API Base URL: http://localhost:${API_PORT}"
+echo "  • API Docs: http://localhost:${API_PORT}/docs"
+echo "  • WebSocket: ws://localhost:${API_PORT}/ws"
 echo ""
 echo "🔧 Management Commands:"
 echo "  • View logs: docker-compose logs -f"
@@ -175,8 +181,8 @@ echo "  • Restart services: docker-compose restart"
 echo "  • Update and restart: docker-compose up --build -d"
 echo ""
 echo "🌐 Example API calls:"
-echo "  • curl 'http://localhost/fetch?channels=@WatcherGuru&days=1&key=YOUR_SECRET_KEY'"
-echo "  • curl 'http://localhost/fetch?channels=@reuters&days=7&q=Bitcoin&key=YOUR_SECRET_KEY'"
+echo "  • curl 'http://localhost:${API_PORT}/fetch?channels=@WatcherGuru&days=1&key=YOUR_SECRET_KEY'"
+echo "  • curl 'http://localhost:${API_PORT}/fetch?channels=@reuters&days=7&q=Bitcoin&key=YOUR_SECRET_KEY'"
 echo ""
 echo "📡 WebSocket Example:"
 echo "  • python3 test_websocket.py"

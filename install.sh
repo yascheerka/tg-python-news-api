@@ -17,4 +17,6 @@ cd tg-python-news-api
 # Run the setup script
 ./setup.sh
 
-echo "✅ Installation complete! Your API is running at http://localhost"
+# Get the configured port
+API_PORT=$(grep API_PORT .env | cut -d'=' -f2 || echo "80")
+echo "✅ Installation complete! Your API is running at http://localhost:${API_PORT}"
