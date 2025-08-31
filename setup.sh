@@ -135,6 +135,19 @@ if [ ! -f .env ]; then
         fi
     done
     
+    # Get Domain
+    while true; do
+        read -p "Enter your domain (or press Enter for localhost): " domain
+        if [[ -z $domain ]]; then
+            domain="localhost"
+        fi
+        if [[ $domain =~ ^[a-zA-Z0-9.-]+$ ]]; then
+            break
+        else
+            print_error "Domain must contain only letters, numbers, dots, and hyphens"
+        fi
+    done
+    
     # Create .env file
     cat > .env << EOF
 # Telegram API Credentials
@@ -152,6 +165,9 @@ SECRET_KEY=$secret_key
 
 # API Port
 API_PORT=$api_port
+
+# Domain
+DOMAIN=$domain
 EOF
     
     print_success ".env file created successfully!"

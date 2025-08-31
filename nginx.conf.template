@@ -9,7 +9,7 @@ http {
 
     server {
         listen 80;
-        server_name tg.1488.fun;
+        server_name ${DOMAIN:-localhost};
 
         # Security headers
         add_header X-Frame-Options "SAMEORIGIN" always;

@@ -48,8 +48,8 @@ The setup script will:
 - ✅ Test the API and provide usage examples
 
 4. **Access the API:**
-   - API: http://tg.1488.fun
-   - Documentation: http://tg.1488.fun/docs
+   - API: http://your-domain.com (or http://localhost for local setup)
+   - Documentation: http://your-domain.com/docs
 
 ## API Usage
 
@@ -69,17 +69,17 @@ GET /fetch?channels=@channel1,@channel2&days=7&q=keyword1,keyword2&limit=100
 
 **Basic fetch:**
 ```
-http://tg.1488.fun/fetch?channels=@WatcherGuru&days=1
+http://your-domain.com/fetch?channels=@WatcherGuru&days=1
 ```
 
 **With search:**
 ```
-http://tg.1488.fun/fetch?channels=@WatcherGuru,@reuters&days=7&q=Bitcoin,ETH
+http://your-domain.com/fetch?channels=@WatcherGuru,@reuters&days=7&q=Bitcoin,ETH
 ```
 
 **Limited results:**
 ```
-http://tg.1488.fun/fetch?channels=@WatcherGuru&days=1&limit=50&q=Elon
+http://your-domain.com/fetch?channels=@WatcherGuru&days=1&limit=50&q=Elon
 ```
 
 ## Docker Commands
@@ -108,6 +108,7 @@ TELEGRAM_API_HASH=your_api_hash
 TELEGRAM_SESSION_STRING=your_session_string
 SECRET_KEY=your_secret_key
 API_PORT=8080  # Optional: Change the port (default: 80)
+DOMAIN=your-domain.com  # Optional: Your domain (default: localhost)
 ```
 
 ## Architecture

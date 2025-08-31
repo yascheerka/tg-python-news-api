@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Telegram News API Deployment Script
-echo "🚀 Deploying Telegram News API for tg.1488.fun"
+echo "🚀 Deploying Telegram News API"
 
 # Check if .env file exists
 if [ ! -f .env ]; then
@@ -40,8 +40,10 @@ echo "🧪 Testing API endpoint..."
 curl -s http://localhost/fetch?channels=@WatcherGuru&days=1&limit=1 > /dev/null
 if [ $? -eq 0 ]; then
     echo "✅ API is responding successfully!"
-    echo "🌐 Your API is now available at: http://tg.1488.fun"
-    echo "📖 API documentation: http://tg.1488.fun/docs"
+    # Get domain from .env
+    DOMAIN=$(grep DOMAIN .env | cut -d'=' -f2 || echo "localhost")
+    echo "🌐 Your API is now available at: http://$DOMAIN"
+    echo "📖 API documentation: http://$DOMAIN/docs"
 else
     echo "❌ API test failed. Check logs with: docker-compose logs"
 fi
