@@ -186,88 +186,17 @@ pip install -r requierment.txt python-dotenv websockets
 
 print_success "Python dependencies installed"
 
-# Generate session string if not exists
-if ! grep -q "TELEGRAM_SESSION_STRING=1B" .env; then
-    print_status "Session string generation..."
-    echo ""
-    print_warning "Session string generation requires interactive input (verification code)"
-    echo ""
-    read -p "Do you want to generate session string now? (y/n): " generate_session
-    
-    if [[ $generate_session =~ ^[Yy]$ ]]; then
-        print_status "Generating Telegram session string..."
-        print_warning "You will need to enter the verification code sent to your phone"
-        echo ""
-        
-        # Create a temporary script to capture the session string
-        cat > temp_session_generator.py << 'EOF'
-import os
-import sys
-import re
-from create_session_string import main
-import asyncio
-
-# Capture stdout to get the session string
-original_stdout = sys.stdout
-session_output = []
-
-class CapturingStdout:
-    def write(self, text):
-        session_output.append(text)
-        original_stdout.write(text)
-    
-    def flush(self):
-        original_stdout.flush()
-
-sys.stdout = CapturingStdout()
-
-try:
-    asyncio.run(main())
-except Exception as e:
-    print(f"Error: {e}")
-    sys.exit(1)
-finally:
-    sys.stdout = original_stdout
-
-# Extract session string from output
-output_text = ''.join(session_output)
-session_match = re.search(r'1B[A-Za-z0-9_-]+', output_text)
-
-if session_match:
-    session_string = session_match.group(0)
-    print(f"\n🎯 Extracted session string: {session_string[:50]}...")
-    
-    # Update .env file
-    with open('.env', 'r') as f:
-        env_content = f.read()
-    
-    # Replace the session string line (handle multiline)
-    env_content = re.sub(
-        r'TELEGRAM_SESSION_STRING=.*?(?=\n#|\n$|\Z)',
-        f'TELEGRAM_SESSION_STRING={session_string}',
-        env_content,
-        flags=re.DOTALL
-    )
-    
-    with open('.env', 'w') as f:
-        f.write(env_content)
-    
-    print("✅ Session string automatically saved to .env!")
-else:
-    print("❌ Failed to extract session string from output")
-    sys.exit(1)
-EOF
-
-        # Run the automated session generator
-        python3 temp_session_generator.py
-        
-        # Clean up
-        rm -f temp_session_generator.py
-        
-    else
-        print_warning "Skipping session string generation. You can run it later with: python3 create_session_string.py"
-    fi
-fi
+# Session string generation (manual)
+print_status "Session string setup..."
+echo ""
+print_warning "Session string generation requires interactive input (verification code)"
+echo ""
+print_info "You can generate the session string manually by running:"
+echo "   source venv/bin/activate"
+echo "   python3 create_session_string.py"
+echo ""
+print_warning "Make sure to copy the session string and add it to TELEGRAM_SESSION_STRING in .env"
+echo ""
 
 # Build and start Docker containers
 print_status "Building and starting Docker containers..."
@@ -291,19 +220,23 @@ fi
 # Get the configured port
 API_PORT=$(grep API_PORT .env | cut -d'=' -f2 || echo "80")
 
-# Test the API
-print_status "Testing API endpoint..."
-if curl -s "http://localhost:${API_PORT}/fetch?channels=@WatcherGuru&days=1&limit=1&key=$(grep SECRET_KEY .env | cut -d'=' -f2)" > /dev/null; then
-    print_success "API is responding successfully!"
-else
-    print_warning "API test failed, but containers are running"
-fi
+# Note about API testing
+print_status "API Status..."
+print_warning "API test skipped - session string needs to be added to .env first"
+print_info "Run 'docker-compose restart' after adding session string to test the API"
 
 # Final status
 echo ""
 echo "🎉 Setup Complete!"
 echo "=================="
-print_success "Your Telegram News API is now running!"
+print_success "Your Telegram News API setup is complete!"
+echo ""
+print_warning "⚠️  IMPORTANT: You need to add your session string to .env before the API will work!"
+echo ""
+echo "📋 Next Steps:"
+echo "  1. Generate session string: source venv/bin/activate && python3 create_session_string.py"
+echo "  2. Copy the session string and add it to TELEGRAM_SESSION_STRING in .env"
+echo "  3. Restart Docker: docker-compose restart"
 echo ""
 echo "📋 Quick Reference:"
 echo "  • API Base URL: http://localhost:${API_PORT}"
