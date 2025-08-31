@@ -199,13 +199,70 @@ if ! grep -q "TELEGRAM_SESSION_STRING=1B" .env; then
         print_warning "You will need to enter the verification code sent to your phone"
         echo ""
         
-        # Run session creation interactively (not captured)
-        python3 create_session_string.py
+        # Create a temporary script to capture the session string
+        cat > temp_session_generator.py << 'EOF'
+import os
+import sys
+import re
+from create_session_string import main
+import asyncio
+
+# Capture stdout to get the session string
+original_stdout = sys.stdout
+session_output = []
+
+class CapturingStdout:
+    def write(self, text):
+        session_output.append(text)
+        original_stdout.write(text)
+    
+    def flush(self):
+        original_stdout.flush()
+
+sys.stdout = CapturingStdout()
+
+try:
+    asyncio.run(main())
+except Exception as e:
+    print(f"Error: {e}")
+    sys.exit(1)
+finally:
+    sys.stdout = original_stdout
+
+# Extract session string from output
+output_text = ''.join(session_output)
+session_match = re.search(r'1B[A-Za-z0-9_-]*', output_text)
+
+if session_match:
+    session_string = session_match.group(0)
+    print(f"\n🎯 Extracted session string: {session_string[:50]}...")
+    
+    # Update .env file
+    with open('.env', 'r') as f:
+        env_content = f.read()
+    
+    # Replace the session string line
+    env_content = re.sub(
+        r'TELEGRAM_SESSION_STRING=.*',
+        f'TELEGRAM_SESSION_STRING={session_string}',
+        env_content
+    )
+    
+    with open('.env', 'w') as f:
+        f.write(env_content)
+    
+    print("✅ Session string automatically saved to .env!")
+else:
+    print("❌ Failed to extract session string from output")
+    sys.exit(1)
+EOF
+
+        # Run the automated session generator
+        python3 temp_session_generator.py
         
-        print_warning "Please manually copy the session string from above and update .env"
-        print_warning "Or run: python3 create_session_string.py"
-        echo ""
-        read -p "Press Enter when you've updated the session string in .env..."
+        # Clean up
+        rm -f temp_session_generator.py
+        
     else
         print_warning "Skipping session string generation. You can run it later with: python3 create_session_string.py"
     fi
