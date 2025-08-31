@@ -188,22 +188,26 @@ print_success "Python dependencies installed"
 
 # Generate session string if not exists
 if ! grep -q "TELEGRAM_SESSION_STRING=1B" .env; then
-    print_status "Generating Telegram session string..."
-    print_warning "You will need to enter the verification code sent to your phone"
+    print_status "Session string generation..."
+    echo ""
+    print_warning "Session string generation requires interactive input (verification code)"
+    echo ""
+    read -p "Do you want to generate session string now? (y/n): " generate_session
     
-    # Run session creation and capture output
-    session_output=$(python3 create_session_string.py 2>&1)
-    
-    # Extract session string from output
-    session_string=$(echo "$session_output" | grep -o "1B[A-Za-z0-9_-]*" | head -1)
-    
-    if [[ -n $session_string ]]; then
-        # Update .env with session string
-        sed -i.bak "s/TELEGRAM_SESSION_STRING=/TELEGRAM_SESSION_STRING=$session_string/" .env
-        print_success "Session string generated and saved to .env!"
+    if [[ $generate_session =~ ^[Yy]$ ]]; then
+        print_status "Generating Telegram session string..."
+        print_warning "You will need to enter the verification code sent to your phone"
+        echo ""
+        
+        # Run session creation interactively (not captured)
+        python3 create_session_string.py
+        
+        print_warning "Please manually copy the session string from above and update .env"
+        print_warning "Or run: python3 create_session_string.py"
+        echo ""
+        read -p "Press Enter when you've updated the session string in .env..."
     else
-        print_error "Failed to generate session string. Please run manually: python3 create_session_string.py"
-        exit 1
+        print_warning "Skipping session string generation. You can run it later with: python3 create_session_string.py"
     fi
 fi
 
